@@ -4,17 +4,23 @@ task install(type: Copy) {
     delimiter = delimiter == -1 ? application.length() : delimiter
     String name = application.substring(0, delimiter)
     String version = application.substring(delimiter + 1, application.length())
+
+    String tmpDir = System.properties["java.io.tmpdir"]
+    if (!tmpDir.endsWith(File.separator)) {
+        tmpDir += File.separator
+    }
+
     switch (name) {
         case "maven":
-            String zip = System.getProperty("java.io.tmpdir") + "apache-maven-${version}-bin.zip"
+            String zip = tmpDir + "apache-maven-${version}-bin.zip"
             String url = "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/${version}/apache-maven-${version}-bin.zip"
             download(zip, url)
             from zipTree(zip)
 
-            String result = System.getProperty("java.io.tmpdir") + "apache-maven-${version}"
+            String result = tmpDir + "apache-maven-${version}"
             into new File(result)
 
-            println "##teamcity[buildParameter name='ci-utils.maven.path' value='${result}/apache-maven-${version}']"
+            println "##teamcity[buildParameter name='ci-utils.maven.path' value='${result}${File.separator}apache-maven-${version}']"
             println "parameter 'ci-utils.maven.path' added"
             break
         case "custom":
@@ -22,7 +28,7 @@ task install(type: Copy) {
             String fileName = url.substring( url.lastIndexOf('/')+1, url.length() )
             if (fileName.contains("?")) fileName = fileName.substring(0, fileName.indexOf("?"))
 
-            String file = System.getProperty("java.io.tmpdir") + fileName
+            String file = tmpDir + fileName
             download(file, url)
 
             println "##teamcity[buildParameter name='ci-utils.downloaded.path' value='${file}']"
